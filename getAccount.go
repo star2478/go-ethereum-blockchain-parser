@@ -210,13 +210,15 @@ func getAndCheckDir() string {
 func main() {
 
   if len(os.Args) < 3 {
-        log.Fatal("Param Invalid!!! go run getAccount.go [blockNumberBegin] [blockNumberEnd]")
+        log.Fatal("Param Invalid!!! go run getAccount.go [timeBegin] [timeEnd], eg. go run getAccount.go 2018-01-01-00-00-00 2018-02-01-00-00-00")
   }
   log.Print("getAccount begin==================");
   timeBegin := time.Now().Unix()  
   MULTICORE := runtime.NumCPU()
   runtime.GOMAXPROCS(MULTICORE)
   //blockNumber := 4927600;
+  timeBegin := os.Args[1]
+  endBegin := os.Args[2]
   blockNumberBegin,err1 := strconv.Atoi(os.Args[1])
   blockNumberEnd,err2 := strconv.Atoi(os.Args[2]) 
   if err1 != nil || err2!=nil || blockNumberBegin > blockNumberEnd {
