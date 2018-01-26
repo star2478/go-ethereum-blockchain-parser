@@ -12,11 +12,11 @@ import (
   "runtime"
   "encoding/json"
   "os"
-  "./go-ethereum/common"
-  "./go-ethereum/common/hexutil"
+//  "./go-ethereum/common"
+//  "./go-ethereum/common/hexutil"
   //"./golang-set"
-//  "github.com/ethereum/go-ethereum/common"
-//  "github.com/ethereum/go-ethereum/common/hexutil"
+  "github.com/ethereum/go-ethereum/common"
+  "github.com/ethereum/go-ethereum/common/hexutil"
 //  "github.com/deckarep/golang-set"
 )
 
