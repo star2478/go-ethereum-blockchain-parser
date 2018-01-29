@@ -2,6 +2,7 @@ package lib
 import (
 		"log"
 		"os"
+		"os/exec"
 		"io"
 		"strings"
 		"strconv"
@@ -43,8 +44,42 @@ func GetBlockNumberByTime(timeBegin string, timeEnd string) (int,int) {
 		blockNumberEnd = lastScanBlockNumber
 	}
   	if blockNumberBegin == -1 || blockNumberEnd == -1 {
-        	log.Fatal("Cannot find blockNumber!!! timeBegin=", timeBegin, " timeEnd=", timeEnd, ", blockNumberBegin=", blockNumberBegin, " blockNumberEnd=", blockNumberEnd);
+        	log.Fatal("Cannot find blockNumber!!! timeBegin=", timeBegin, " timeEnd=", timeEnd, ", blockNumberBegin=", blockNumberBegin, " blockNumberEnd=", blockNumberEnd, ". You can try to run 'go run synBlockTime.go' to get current block time before this");
   	}	
 	log.Print("finish GetBlockNumberByTime, blockNumberBegin=", blockNumberBegin, " blockNumberEnd=",blockNumberEnd)
 	return blockNumberBegin, blockNumberEnd
+}
+
+func PathExists(path string) (bool) {
+        _, err := os.Stat(path)
+        if err == nil {
+                return true
+        }
+        return false
+}
+func GetAndCheckDir(dirname string) string {
+        curDir, _ := os.Getwd()  //
+        newDir := curDir +"/" + dirname
+        if PathExists(newDir) == false {
+                err := os.Mkdir(newDir, os.ModePerm)  //
+                if err != nil {
+                        log.Fatal(newDir, " create fail! ", err)
+                        //return nil
+                }
+        }
+        return newDir
+}
+func ExecCmd(command string, isFatalExit bool) {
+
+    log.Print("begin to run command=" + command);
+    cmd := exec.Command("/bin/bash", "-c", command)
+    err := cmd.Run()
+    if err != nil {
+	if isFatalExit == true {
+        	log.Fatal("Fail!!!cmd="+command+" run fail!", err)
+	} else {
+        	log.Print("Fail!!!cmd="+command+" run fail!", err)
+
+	}
+    }
 }

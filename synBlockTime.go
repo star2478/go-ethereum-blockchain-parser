@@ -58,7 +58,7 @@ type Block struct {
         UncleHashes  []common.Hash    `json:"uncles"`
         Hash         common.Hash      `json:"hash"`
         Timestamp    string      `json:"timestamp"`
-        Transactions []RPCTransaction `json:"transactions"`
+        //Transactions []RPCTransaction `json:"transactions"`
 }
 
 func decimalToAny(num, n int) string {

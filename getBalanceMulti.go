@@ -14,6 +14,7 @@ import (
   "os"
   "io"
   "bufio"
+  "./lib"
 //  "./go-ethereum/common"
 //  "./go-ethereum/common/hexutil"
   //"./golang-set"
@@ -150,8 +151,8 @@ func pathExists(path string) (bool) {
 }
 
 func getBalance(srcFileNamePrefix string, desFileNamePrefix string, sufix int) {
-	srcFileName := srcFileNamePrefix + "_" + strconv.Itoa(sufix)
-        desFileName := desFileNamePrefix + "_" + strconv.Itoa(sufix)
+	srcFileName := srcFileNamePrefix + strconv.Itoa(sufix)
+        desFileName := desFileNamePrefix + strconv.Itoa(sufix)
 	log.Print("taskId=", desFileName, " begin! srcFileName=", srcFileName)
         fd1, err1 := os.Open(srcFileName)
         if err1 != nil {
@@ -200,6 +201,7 @@ func getBalance(srcFileNamePrefix string, desFileNamePrefix string, sufix int) {
 }
 
 func main() {
+log.Print(lib.GetAndCheckDir("haha"))
   if len(os.Args) < 4 {
   	log.Fatal("Param Invalid!!! go run getBalanceMulti.go [srcFileNamePrefix] [desFileNamePrefix] [concurrentNum]")
   }

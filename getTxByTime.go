@@ -12,6 +12,7 @@ import (
   "runtime"
   "encoding/json"
   "os"
+  "./lib"
 //  "./go-ethereum/common"
 //  "./go-ethereum/common/hexutil"
   //"./golang-set"
@@ -203,81 +204,32 @@ func getTxByBlock(fromBlockNumber int, toBlockNumber int, fileName string) {
 	c <- taskId
 }
 
-func getAndCheckDir() string {
-	curDir, _ := os.Getwd()  //
-        newDir := curDir +"/tx"
-        if pathExists(newDir) == false {
-                err := os.Mkdir(newDir, os.ModePerm)  //
-                if err != nil {
-                        log.Fatal(newDir, " create fail! ", err)
-                        //return nil
-                }
-        }
-	return newDir
-}
-
-func mergeAndSort(filePrefix string, loopCount int) {
-    dir := getAndCheckDir()
-    srcMergeFiles := ""
-    for i := 1; i <= loopCount; i++ {
-    	srcMergeFiles += dir + "/" + filePrefix + "-" + strconv.Itoa(i) + ".txt "
-    }
-    desMergeFile := dir + "/" + filePrefix
-    command := "cat "+srcMergeFiles+" >> " + desMergeFile
-    log.Print("begin to merge files, run command=" + command);
-    cmd := exec.Command("/bin/bash", "-c", command)
-    err := cmd.Run()
-    if err != nil {
-        log.Fatal("cmd="+command+" run fail!", err)
-    }
- 
-    command = "rm "+srcMergeFiles
-    log.Print("begin to rm tmp files, run command=" + command);
-    cmd = exec.Command("/bin/bash", "-c", command)
-    err = cmd.Run()
-    if err != nil {
-        log.Fatal("cmd="+command+" run fail!", err)
-    }
-
-    fromSortFile := dir + "/" + filePrefix + "-from-sort"
-    command = "sort -k 3 "+desMergeFile+" > " + fromSortFile
-    log.Print("begin to sort files by from field, run command=" + command);
-    cmd = exec.Command("/bin/bash", "-c", command)
-    err = cmd.Run()
-    if err != nil {
-        log.Fatal("cmd="+command+" run fail!", err)
-    }
-    
-    toSortFile := dir + "/" + filePrefix + "-to-sort"
-    command = "sort -k 4 "+desMergeFile+" > " + toSortFile
-    log.Print("begin to sort files by to field, run command=" + command);
-    cmd = exec.Command("/bin/bash", "-c", command)
-    err = cmd.Run()
-    if err != nil {
-        log.Fatal("cmd="+command+" run fail!", err)
-    }
-}
- 
 func main() {
 
   if len(os.Args) < 3 {
-        log.Fatal("Param Invalid!!! go run getTxByBlock.go [blockNumberBegin] [blockNumberEnd]")
+        log.Fatal("Param Invalid!!! go run getTxByTime.go [timeFrom] [timeTo], eg. go run getTxByTime.go 2018-01-01-00-00-00 2018-02-01-00-00-00")
   }
-  log.Print("getTxByBlock begin==================");
-  timeBegin := time.Now().Unix()  
+  log.Print("====getTxByTime begin==================");
+  timeBegin := time.Now().Unix()
   MULTICORE := runtime.NumCPU()
   runtime.GOMAXPROCS(MULTICORE)
   //blockNumber := 4927600;
-  blockNumberBegin,err1 := strconv.Atoi(os.Args[1])
-  blockNumberEnd,err2 := strconv.Atoi(os.Args[2]) 
-  if err1 != nil || err2!=nil || blockNumberBegin > blockNumberEnd {
-	log.Fatal("Param Fail!!! blockNumberBegin > blockNumberEnd or err1=", err1, " or err2=", err2);
+  timeFrom := os.Args[1]
+  timeTo := os.Args[2]
+  if timeFrom >= timeTo {
+        log.Fatal("timeFrom=", timeFrom, " >= timeTo=", timeTo)
   }
+  blockNumberBegin, blockNumberEnd := lib.GetBlockNumberByTime(timeFrom, timeTo)
   totalBlockNum := blockNumberEnd - blockNumberBegin + 1;
   share := totalBlockNum / MAX_NUM_SHARE + 1
   loopCount := 0
-  dir := getAndCheckDir()
-  filePrefix := "tx-" + strconv.Itoa(blockNumberBegin) + "-" + strconv.Itoa(blockNumberEnd) 
+  dir := lib.GetAndCheckDir("tx")
+  filePrefix := timeFrom + "-" + timeTo 
+  files := dir + "/" + filePrefix + "-*"
+  resultFile := dir + "/" + filePrefix
+  resultFileTmp := dir + "/"+strconv.FormatInt(timeBegin, 10)+"tmp"
+  lib.ExecCmd("rm " + files, false)
+  lib.ExecCmd("rm " + resultFileTmp, false)
   for i := blockNumberBegin; i <= blockNumberEnd; i++ {
 	from := i
 	if ((share+i) <= blockNumberEnd) {
@@ -287,7 +239,7 @@ func main() {
 	}
 	to := i
 	loopCount++
-        fileName := dir + "/" + filePrefix  + "-"+ strconv.Itoa(loopCount) + ".txt"
+        fileName := dir + "/" + filePrefix  + "-"+ strconv.Itoa(loopCount)
 	go getTxByBlock(from, to, fileName);
   }
   for i := 0; i < loopCount; i++ {
@@ -295,7 +247,12 @@ func main() {
 	log.Print(taskId, " finish");
   }
 
-  mergeAndSort(filePrefix, loopCount)
+  lib.ExecCmd( "cat "+files + " >> " + resultFileTmp, true)
+  lib.ExecCmd("rm " + files, true)
+  lib.ExecCmd("mv " + resultFileTmp + " " + resultFile, true)
+  lib.ExecCmd("sort -k 3 " + resultFile + " > " + resultFile + "-from-sort", true)
+  lib.ExecCmd("sort -k 4 " + resultFile + " > " + resultFile + "-to-sort", true)
+
 
   timeEnd := time.Now().Unix()  
   log.Print("getTxByBlock finish, cost=", (timeEnd - timeBegin), "s")

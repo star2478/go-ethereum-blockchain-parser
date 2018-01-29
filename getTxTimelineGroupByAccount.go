@@ -13,6 +13,7 @@ import (
   "os"
   "io"
   "bufio"
+  "./lib"
   //"./golang-set"
 //  "github.com/ethereum/go-ethereum/common"
 //  "github.com/ethereum/go-ethereum/common/hexutil"
@@ -78,23 +79,29 @@ func getFileContent(txMap map[string]string) bytes.Buffer {
 }
 
 func main() {
-  	if len(os.Args) < 4 { 
-        	log.Fatal("Param Invalid!!! go run getTxTimelineGroupByAccount.go [from-sort-file] [to-sort-file] [desFileName]")
-  	}
+	if len(os.Args) < 3 {
+                log.Fatal("Param Invalid!!! go run getTxTimelineGroupByAccount.go [timeFrom] [timeTo], eg. go run getTxTimelineGroupByAccount.go 2018-01-01-00-00-00 2018-02-01-00-00-00")
+        }
   	fmt.Println("getTxTimelineGroupByAccount begin==================");
   	timeBegin := time.Now().Unix()  
   	MULTICORE := runtime.NumCPU()
   	runtime.GOMAXPROCS(MULTICORE)
-  	fromFileName := os.Args[1]
-  	toFileName := os.Args[2]
-  	desFileName := os.Args[3]
+	timeFrom := os.Args[1]
+        timeTo := os.Args[2]
+        if timeFrom >= timeTo {
+                log.Fatal("timeFrom=", timeFrom, " >= timeTo=", timeTo)
+        }
+	dir := lib.GetAndCheckDir("tx")
+  	fromFileName := dir + "/" + timeFrom + "-" + timeTo + "-from-sort"
+  	toFileName := dir + "/" + timeFrom + "-" + timeTo + "-to-sort"
+  	desFileName := dir + "/" + timeFrom + "-" + timeTo + "-timeline"
 	fd1, err1 := os.Open(fromFileName)
 	if err1 != nil {
-		log.Fatal("file=",fromFileName," open fail!!", err1);
+		log.Fatal("file=",fromFileName," open fail!! First of all, you must run 'go run getTxByTime.go ", timeFrom, " ", timeTo, "' to get transactions! err=" , err1);
 	}
 	fd2, err2 := os.Open(toFileName)
 	if err2 != nil {
-		log.Fatal("file=",toFileName," open fail!!", err2);
+		log.Fatal("file=",toFileName," open fail!! First of all, you must run 'go run getTxByTime.go ", timeFrom, " ", timeTo, "' to get transactions! err=" , err1);
 	}
         desFd,err3 := os.OpenFile(desFileName,os.O_RDWR|os.O_CREATE|os.O_APPEND,0644)
 	if err3 != nil {

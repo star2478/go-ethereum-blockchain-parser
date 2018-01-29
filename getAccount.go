@@ -150,13 +150,6 @@ func exec_shell(s string, blockNumber int, retry int, fileContent *string) {
     //log.Print(accountSet)
 }
 
-func pathExists(path string) (bool) {
-        _, err := os.Stat(path)
-        if err == nil {
-                return true
-        }
-        return false
-}
 
 func getAccount(fromBlockNumber int, toBlockNumber int, fileName string) {
 	taskId := strconv.Itoa(fromBlockNumber) + "-" + strconv.Itoa(toBlockNumber)
@@ -195,24 +188,11 @@ func getAccount(fromBlockNumber int, toBlockNumber int, fileName string) {
 	c <- taskId
 }
 
-func getAndCheckDir() string {
-	curDir, _ := os.Getwd()  //
-        newDir := curDir +"/accounts"
-        if pathExists(newDir) == false {
-                err := os.Mkdir(newDir, os.ModePerm)  //
-                if err != nil {
-                        log.Fatal(newDir, " create fail! ", err)
-                        //return nil
-                }
-        }
-	return newDir
-}
-
 func main() {
   if len(os.Args) < 3 {
         log.Fatal("Param Invalid!!! go run getAccount.go [timeFrom] [timeTo], eg. go run getAccount.go 2018-01-01-00-00-00 2018-02-01-00-00-00")
   }
-  log.Print("getAccount begin==================");
+  log.Print("====getAccount begin==================");
   timeBegin := time.Now().Unix()  
   MULTICORE := runtime.NumCPU()
   runtime.GOMAXPROCS(MULTICORE)
@@ -226,7 +206,12 @@ func main() {
   totalBlockNum := blockNumberEnd - blockNumberBegin + 1;
   share := totalBlockNum / MAX_NUM_SHARE + 1
   loopCount := 0
-  dir := getAndCheckDir()
+  dir := lib.GetAndCheckDir("accounts")
+  files := dir + "/" + timeFrom + "-" + timeTo + "-*"
+  resultFile := dir + "/" + timeFrom + "-" + timeTo
+  resultFileTmp := dir + "/"+strconv.FormatInt(timeBegin, 10)+"tmp"
+  lib.ExecCmd("rm " + files, false)
+  lib.ExecCmd("rm " + resultFileTmp, false)
   for i := blockNumberBegin; i <= blockNumberEnd; i++ {
 	from := i
 	if ((share+i) <= blockNumberEnd) {
@@ -236,16 +221,19 @@ func main() {
 	}
 	to := i
 	loopCount++
-        fileName := dir + "/" + strconv.Itoa(loopCount) + ".txt"
+        fileName := dir + "/" + timeFrom + "-" + timeTo + "-" + strconv.Itoa(loopCount)
 	go getAccount(from, to, fileName);
   }
   for i := 0; i < loopCount; i++ {
 	taskId := <- c
 	log.Print(taskId, " finish");
   }
-
-//    command := "curl -X POST --data '{\"jsonrpc\":\"3.0\",\"method\":\"eth_getBalance\",\"params\":[\"0x51cd215bB9Aa24484870b91a5E61B8F6aB693A0f\",\"latest\"],\"id\":1}' -H \"Content-type: application/json;charset=UTF-8\"  localhost:8545";
+    
+  lib.ExecCmd( "cat "+files + " >> " + resultFileTmp, true)
+  lib.ExecCmd("rm " + files, true)
+  lib.ExecCmd("sort " + resultFileTmp + "|uniq >" + resultFile, true)
+  lib.ExecCmd("rm " + resultFileTmp, true)
 
   timeEnd := time.Now().Unix()  
-  log.Print("getAccount finish, cost=", (timeEnd - timeBegin), "s")
+  log.Print("====getAccount finish, cost=", (timeEnd - timeBegin), "s")
 }

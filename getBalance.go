@@ -14,6 +14,7 @@ import (
   "os"
   "io"
   "bufio"
+  "./lib"
 //  "./go-ethereum/common"
 //  "./go-ethereum/common/hexutil"
   //"./golang-set"
@@ -155,16 +156,27 @@ func getBalance(accountNo string, fileContent *string) {
 }
 
 func main() {
+	if len(os.Args) < 3 {
+        	log.Fatal("Param Invalid!!! go run getBalance.go [timeFrom] [timeTo], eg. go run getBalance.go 2018-01-01-00-00-00 2018-02-01-00-00-00")
+  	}
 	//log.Print("187b2445cfb31e42b6a");
   	fmt.Println("getBalance begin==================");
   	timeBegin := time.Now().Unix()  
   	MULTICORE := runtime.NumCPU()
   	runtime.GOMAXPROCS(MULTICORE)
-  	srcFileName := os.Args[1]
-  	desFileName := os.Args[2]
+	timeFrom := os.Args[1]
+  	timeTo := os.Args[2]
+  	if timeFrom >= timeTo {
+        	log.Fatal("timeFrom=", timeFrom, " >= timeTo=", timeTo)
+  	}
+	accountsDir := lib.GetAndCheckDir("accounts")
+	balanceDir := lib.GetAndCheckDir("balance")
+  	srcFileName := accountsDir + "/" + timeFrom + "-" + timeTo
+  	desFileName := balanceDir + "/" + timeFrom + "-" + timeTo
+	lib.ExecCmd("rm " + desFileName, false)
 	fd1, err1 := os.Open(srcFileName)
 	if err1 != nil {
-		log.Fatal("file=",srcFileName," open fail!!", err1);
+		log.Fatal("file=",srcFileName," open fail!! First of all, you must run 'go run getAccount.go ", timeFrom, " ", timeTo, "' to get accounts! err=" , err1);
 	}
         fd2,err2 := os.OpenFile(desFileName,os.O_RDWR|os.O_CREATE|os.O_APPEND,0644)
 	if err2 != nil {
