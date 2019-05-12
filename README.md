@@ -12,3 +12,7 @@
     * 获取一段时间内所有交易明细：`go run getTxByTime.go [timeFrom] [timeTo]`, 比如`go run getTxByTime.go 2018-01-01-00-00-00 2018-02-01-00-00-00`。结果会存到tx目录下，文件名为[timeFrom]-[timeTo]。同时还会产生另外两个文件[timeFrom]-[timeTo]-from-sort和[timeFrom]-[timeTo]-to-sort，分别存放以交易卖出账户和买进账户排序后的结果
     * 获取一段时间内每个交易账户的交易明细：`go run getTxTimelineGroupByAccount.go [timeFrom] [timeTo]`, 比如`go run getTxTimelineGroupByAccount.go 2018-01-01-00-00-00 2018-02-01-00-00-00`。结果会存到tx目录下，文件名为[timeFrom]-[timeTo]-timeline。注意：执行此命令前需要先执行`go run getTxByTime.go [timeFrom] [timeTo]`
     * 获取一段时间内每个交易账户的交易总数（含进出总数和进出交易量）：`go run getTxCountGroupByAccount.go [timeFrom] [timeTo]`, 比如`go run getTxCountGroupByAccount.go 2018-01-01-00-00-00 2018-02-01-00-00-00`。结果会存到tx目录下，文件名为[timeFrom]-[timeTo]-count。注意：执行此命令前需要先执行`go run getTxByTime.go [timeFrom] [timeTo]`
+
+
+# wiki
+https://github.com/star2478/go-ethereum-blockchain-parser/wiki/%E4%BB%A5%E5%A4%AA%E5%9D%8AGo-Ethereum(Geth)%E8%83%BD%E5%81%9A%E4%BB%80%E4%B9%88
